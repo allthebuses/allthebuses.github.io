@@ -35,12 +35,12 @@
 <body>
 
 <div id='map'></div>
-<div id='logo'><img src="/static/logo.png" /></div>
+<div id='logo'><img src="/logo.png" /></div>
 <script>
   mapboxgl.accessToken = 'pk.eyJ1IjoiaWdub3JlZGFtYmllbmNlIiwiYSI6ImNqNzl4cXRjNTA2amoyeG1iNXJ1eGxlb3kifQ.tX0X5FiKjp3ifGH917pKsA';
   var map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/dark-v9',
+    style: 'mapbox://styles/mapbox/light-v9',
     center: [-0.1275, 51.507222],
     zoom: 10
   });
@@ -50,69 +50,47 @@
 
 
   map.on('load', function () {
-    map.addSource('routes-source', { type: 'geojson', data: '/static/all-routes.geojson' });
+    map.addSource('routes-source', { type: 'geojson', data: '/all-routes.geojson' });
 
     var zoomStops = { "stops": [[10, 3], [15, 5]] };
 
     map.addLayer({
-        "id": "hugo",
+        "id": "select-layer",
         "type": "line",
         "source": "routes-source",
         "paint": {
-          "line-color": "#92d050",
-          "line-width": zoomStops,
-          "line-blur": 1
+          "line-color": "indigo",
+          "line-width": 2,
+          "line-blur": 1,
+          "line-gap-width": 3
         },
-        "filter": ["!has", "name"]
+        "filter": ["in", "name", ""]
     }, "waterway-label");
 
-    map.addLayer({
-        "id": "josh",
-        "type": "line",
-        "source": "routes-source",
-        "paint": {
-          "line-color": "#b2a1c7",
-          "line-width": zoomStops,
-          "line-blur": 1
-        },
-        "filter": ["!has", "name"]
-    }, "hugo");
 
     map.addLayer({
-        "id": "david",
+        "id": "no-layer",
         "type": "line",
         "source": "routes-source",
         "paint": {
-          "line-color": "#95b3d7",
+          "line-color": "red",
           "line-width": zoomStops,
-          "line-blur": 1
+          "line-blur": 0
         },
         "filter": ["!has", "name"]
-    }, "josh");
+    }, "select-layer");
 
     map.addLayer({
-        "id": "tangy",
+        "id": "yes-layer",
         "type": "line",
         "source": "routes-source",
         "paint": {
-          "line-color": "#d99594",
+          "line-color": "green",
           "line-width": zoomStops,
           "line-blur": 1
         },
         "filter": ["!has", "name"]
-    }, "david");
-
-    map.addLayer({
-        "id": "adham",
-        "type": "line",
-        "source": "routes-source",
-        "paint": {
-          "line-color": "#ffc000",
-          "line-width": zoomStops,
-          "line-blur": 1
-        },
-        "filter": ["!has", "name"]
-    }, "tangy");
+    }, "no-layer");
 
     map.addLayer({
         "id": "other-layer",
@@ -124,7 +102,7 @@
           "line-blur": 1
         },
         "filter": ["has", "name"]
-    }, "adham");
+    }, "yes-layer");
 
     map.addLayer({
       "id": "attribution-layer",
@@ -191,24 +169,24 @@
   var statusData = {};
   function handleData(text) {
     statusData = JSON.parse(text);
-    var riders = {
-      "adham": ["in", "name"],
-      "tangy": ["in", "name"],
-      "josh": ["in", "name"],
-      "david": ["in", "name"],
-      "hugo": ["in", "name"]
-    };
+    var yes = ["in", "name"];
+    var no = ["in", "name"];
     var all = ["!in", "name"];
 
     statusData.forEach(function(el) {
       all.push(el[0]);
-      riders[el[2].toLowerCase()].push(el[0]);
+      if(el[1] == "Y") {
+        yes.push(el[0]);
+      } else {
+        no.push(el[0]);
+      }
     });
 
-    ["adham", "tangy", "josh", "david", "hugo"].forEach(function(n) {
-      map.setFilter(n, riders[n]);
-    });
     map.setFilter("other-layer", all);
+    map.setFilter("yes-layer", yes);
+    map.setFilter("no-layer", no);
+
+    window.setTimeout(loadData, 60000);
   }
 </script>
 
